@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-#define BOARD_LENGTH 20
-
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#define BOARD_LENGTH 20
 
 int score = 0;
 
@@ -17,7 +14,6 @@ void setNonBlockingInput() {
     tcgetattr(STDIN_FILENO, &term);  // Get current terminal attributes
     term.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
     tcsetattr(STDIN_FILENO, TCSANOW, &term);
-
     // Make read non-blocking
     fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL) | O_NONBLOCK);
 }
@@ -31,11 +27,8 @@ void resetTerminalMode() {
 }
 
 //Function to print the board to the screen
-
 void renderBoard(char board[BOARD_LENGTH][BOARD_LENGTH], int head[2], int apple[2], int** body){
-
 	printf("\033[H\033[J\n\n"); // ANSI escape sequence to clear screen	
-
 	for (int i = 0;i<BOARD_LENGTH; i++){
 		for (int j = 0; j<BOARD_LENGTH ; j++){
 			if (j == head[0] && i == head[1]){
@@ -59,40 +52,30 @@ void renderBoard(char board[BOARD_LENGTH][BOARD_LENGTH], int head[2], int apple[
 					else{
 						printf("%c  ",board[i][j]);
 					}
-
 				}
 			}
 			
 		}
 		printf("\n");
 	}
-
 	printf("\n\n");
-
 }
 
-
 int main(){
-	
 	//Creating and initializing board	
-	
 	char board[BOARD_LENGTH][BOARD_LENGTH];
-
 	for (int i = 0;i<BOARD_LENGTH; i++){
 		for (int j = 0; j<BOARD_LENGTH ; j++){
 			board[i][j] = '.';
 		}
 	}
 
-	
-
 	//Set the initial head location
-	
 	int head[2];
 	int apple[2];
 	srand(time(NULL));
 	head[0] = BOARD_LENGTH/2;
-        head[1] = BOARD_LENGTH/2;
+    head[1] = BOARD_LENGTH/2;
 	apple[0] = rand()%BOARD_LENGTH;
 	apple[1] = rand()%BOARD_LENGTH;	
 	char input; //keep track of user input
@@ -103,7 +86,6 @@ int main(){
 	while(1){
 		//Handle user input
 		input = getchar();
-
 		if (input != EOF){
 			switch (state){
 				case('r'):
@@ -141,10 +123,8 @@ int main(){
 						state = 'd';
 					}
 					break;
-
 			}
 		}
-
 		if (input == 'q'){
 			break;
 		}
@@ -179,7 +159,6 @@ int main(){
 					goto endGame;
 				}
 				break;
-			
 			case('l'):
 				if (head[0] > 0){
 					head[0]--;
@@ -188,17 +167,12 @@ int main(){
 					goto endGame;
 				}
 				break;
-
-
 		}
-		
-
 		for (int i = 0; i<score; i++){
 			if (head[0] == body[i][0] && head[1] == body[i][1]){
 				goto endGame;
 			}
-		}
-		
+		}	
 		if (apple[0] == head[0] && apple[1] == head[1]){
 			//printf("Got apple!\n");
 			apple[0] = rand()%20;
@@ -229,7 +203,7 @@ int main(){
 		//printf("Head coords: %d , %d \n", head[0], head[1]);
 		printf("Score: %d\n",score);
 		//someVariable++;
-		usleep(70000);
+		usleep(70000);	
 	}
 
 	endGame:	
