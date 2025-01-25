@@ -4,7 +4,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#define BOARD_LENGTH 20
+#include <ncurses.h>
+#define BOARD_LENGTH 25
 
 int score = 0;
 
@@ -28,15 +29,16 @@ void resetTerminalMode() {
 
 //Function to print the board to the screen
 void renderBoard(char board[BOARD_LENGTH][BOARD_LENGTH], int head[2], int apple[2], int** body){
-	printf("\033[H\033[J\n\n"); // ANSI escape sequence to clear screen	
+	//printf("\033[H\033[J\n\n"); // ANSI escape sequence to clear screen	
+	
 	for (int i = 0;i<BOARD_LENGTH; i++){
 		for (int j = 0; j<BOARD_LENGTH ; j++){
 			if (j == head[0] && i == head[1]){
-				printf("@  ");
+				printw("@  ");
 			}
 			else{
 				if (j == apple[0] && i == apple[1]){
-					printf("O  ");
+					printw("O  ");
 				}
 				else{
 					int isBody = 0;
@@ -47,18 +49,18 @@ void renderBoard(char board[BOARD_LENGTH][BOARD_LENGTH], int head[2], int apple[
 						}
 					}
 					if (isBody){
-						printf("X  ");
+						printw("X  ");
 					}
 					else{
-						printf("%c  ",board[i][j]);
+						printw("%c  ",board[i][j]);
 					}
 				}
 			}
 			
 		}
-		printf("\n");
+		printw("\n");
 	}
-	printf("\n\n");
+	printw("\n\n");
 }
 
 int main(){
@@ -69,6 +71,12 @@ int main(){
 			board[i][j] = '.';
 		}
 	}
+
+	initscr();
+    cbreak();          // Disable line buffering
+    noecho();          // Don't display input characters
+    curs_set(0);       // Hide the cursor
+    timeout(100);      // Non-blocking input with 100ms delay
 
 	//Set the initial head location
 	int head[2];
@@ -174,12 +182,25 @@ int main(){
 			}
 		}	
 		if (apple[0] == head[0] && apple[1] == head[1]){
-			//printf("Got apple!\n");
-			apple[0] = rand()%20;
-			apple[1] = rand()%20;
-			//for (int i = 0; i<score; i++){
-			//	if (body[i][0]
-			//}
+			apple[0] = rand()%BOARD_LENGTH;
+			apple[1] = rand()%BOARD_LENGTH;
+            int isBody = 0;
+			for (int i = 0; i<score; i++){
+				if (body[i][0] == apple[0] && body[i][1] == apple[1]){
+					isBody = 1;
+					break;
+                }
+			}
+			while (isBody){
+				apple[0] = rand()%BOARD_LENGTH;
+				apple[1] = rand()%BOARD_LENGTH;
+				for (int i = 0; i< score; i++){
+					if (body[i][0] == apple[0] && body[i][1] == apple[1]){
+						continue;
+					}
+				}
+				break;
+			}
 			score++;
 			body = realloc(body, score*sizeof(int*));
 			body[score-1] = malloc(2*sizeof(int));
@@ -198,23 +219,24 @@ int main(){
 			}
 			body[score-1][0] = oldHead[0];
 			body[score-1][1] = oldHead[1];
-		}	
+		}
+		clear();
 		renderBoard(board, head, apple, body);	
-		//printf("Head coords: %d , %d \n", head[0], head[1]);
-		printf("Score: %d\n",score);
-		//someVariable++;
-		usleep(70000);	
+		refresh();
+		printw("Score: %d\n",score);
+		usleep(60000);	
 	}
 
 	endGame:	
-		printf("Game Over!\n\n");
+		printw("Game Over!\n\n");
 		resetTerminalMode();
 		for (int i = 0; i< score; i++){
 			free(body[i]);
 		}
 		free(body);
+		endwin();
 		return 0;
+	//endwin();
 	resetTerminalMode();
 	return 0;
 }
-
